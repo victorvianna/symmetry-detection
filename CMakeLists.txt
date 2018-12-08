@@ -14,5 +14,9 @@ option(LIBIGL_WITH_OPENGL_GLFW       "Use GLFW"           ON)
 option(LIBIGL_WITH_VIEWER            "Use OpenGL viewer"  ON)
 find_package(LIBIGL REQUIRED QUIET)
 
+# Mean shift ms-clustering lib
+add_subdirectory(${LIB_DIRECTORY}/ms-clustering)
+include_directories(${LIB_DIRECTORY}/ms-clustering)
+
 add_subdirectory(${TEST_DIRECTORY})
 add_subdirectory(${SRC_DIRECTORY})

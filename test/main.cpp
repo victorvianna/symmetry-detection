@@ -2,19 +2,20 @@
 #include <igl/opengl/glfw/Viewer.h>
 #include <igl/adjacency_list.h>
 #include <vector>
+#include "mean_shift.h"
+#include "kernel.h"
 
-Eigen::MatrixXd V;
-Eigen::MatrixXi F;
+void test_mesh_display(){
+  Eigen::MatrixXd V;
+  Eigen::MatrixXi F;
 
-std::vector<std::vector<int>> A;
+  std::vector<std::vector<int>> A;
 
-int main(int argc, char *argv[])
-{
   // Load a mesh in OFF format
   igl::readOFF("mesh/bunny.off", V, F);
 
   igl::adjacency_list(F, A);
-  
+
   int edges = 0;
   for (auto vertex : A){
     edges += vertex.size();
@@ -30,5 +31,20 @@ int main(int argc, char *argv[])
 
   igl::adjacency_list(F, A);
 
+}
+
+void test_clustering(){
+    using namespace std;
+    MeanShift *msp = new MeanShift(epanechnikov_kernel);
+    double kernel_bandwidth = 3;
+
+    vector<vector<double> > points = {{0, 0, 0}, {1, 1, 1}};
+    vector<Cluster> clusters = msp->cluster(points, kernel_bandwidth);
+}
+
+int main(int argc, char *argv[])
+{
+  //test_mesh_display();
+  test_clustering();
   return 0;
 }
