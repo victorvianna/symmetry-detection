@@ -4,3 +4,6 @@
 [submodule "lib/ms-clustering"]
 	path = lib/ms-clustering
 	url = git@github.com:victorvianna/ms-clustering.git
+[submodule "lib/flann"]
+	path = lib/flann
+	url = git@github.com:victorvianna/flann.git
