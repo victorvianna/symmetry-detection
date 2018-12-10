@@ -125,6 +125,15 @@ void test_clustering(){
     vector<Cluster> clusters = msp->cluster(points, kernel_bandwidth);
 }
 
+void test_weighted_clustering(){
+    using namespace std;
+    MeanShift *msp = new MeanShift(epanechnikov_kernel, {1, 1, 1, 0, 0});
+    double kernel_bandwidth = 3;
+
+    vector<vector<double> > points = {{0, 0, 0, 10, 20}, {1, 1, 1, 30, 40}};
+    vector<Cluster> clusters = msp->cluster(points, kernel_bandwidth);
+}
+
 void test_nearest_neighbors(){
     using namespace flann;
 
@@ -162,5 +171,6 @@ int main(int argc, char *argv[])
     test_principal_curvatures();
     test_clustering();
     test_nearest_neighbors();
+    test_weighted_clustering();
     return 0;
 }
