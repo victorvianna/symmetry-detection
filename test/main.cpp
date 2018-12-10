@@ -144,10 +144,11 @@ void test_nearest_neighbors(){
             3, 3
     };
     Matrix<double> dataset(dataset_, 4, 2);
-    double* query_ = new double[2]{
-            0.5, 0.5
+    double* query_ = new double[4]{
+            0.5, 0.5,
+            2.5, 2.5
     };
-    Matrix<double> query(query_, 1, 2);
+    Matrix<double> query(query_, 2, 2);
 
     std::vector< std::vector<int>> indices;
     std::vector<std::vector<double>> dists;
@@ -161,6 +162,11 @@ void test_nearest_neighbors(){
     double radius = 0.6;
     index.radiusSearch(query, indices, dists, radius, flann::SearchParams(128));
 
+    for(std::vector<int>& v : indices) {
+        for (int x : v)
+            std::cout << x << " ";
+        std::cout<<std::endl;
+    }
     delete[] dataset.ptr();
     delete[] query.ptr();
 }
@@ -168,7 +174,7 @@ void test_nearest_neighbors(){
 int main(int argc, char *argv[])
 {
     //test_mesh_display();
-    test_principal_curvatures();
+    //test_principal_curvatures();
     test_clustering();
     test_nearest_neighbors();
     test_weighted_clustering();
