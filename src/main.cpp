@@ -116,11 +116,11 @@ void build_pairing(vector<Signature> &signatures, vector<Transformation> &transf
     index.radiusSearch(query, indices, dists, radius, flann::SearchParams(128));
     for (int i = 0; i < samples.size(); i++) {
         vector<int> &neighbors = indices[i];
-        Signature &p_i = samples[i];
+        Signature &p_a = samples[i];
         for (int j : neighbors) {
-            Signature &p_j = samples[j];
-            transf.push_back(Transformation(p_i, p_j));
-            transf.push_back(Transformation(p_j, p_i));
+            Signature &p_b = signatures[j];
+            transf.push_back(Transformation(p_a, p_b));
+            transf.push_back(Transformation(p_b, p_a));
         }
     }
 }
