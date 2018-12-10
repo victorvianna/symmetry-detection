@@ -1,3 +1,4 @@
+set(CMAKE_CXX_STANDARD 11)
 cmake_minimum_required(VERSION 3.1)
 
 project(symmetry-detection)
@@ -13,6 +14,14 @@ option(LIBIGL_WITH_OPENGL            "Use OpenGL"         ON)
 option(LIBIGL_WITH_OPENGL_GLFW       "Use GLFW"           ON)
 option(LIBIGL_WITH_VIEWER            "Use OpenGL viewer"  ON)
 find_package(LIBIGL REQUIRED QUIET)
+
+# Mean shift clustering lib
+add_subdirectory(${LIB_DIRECTORY}/ms-clustering)
+include_directories(${LIB_DIRECTORY}/ms-clustering)
+
+# Nearest neighbors lib
+add_subdirectory(${LIB_DIRECTORY}/flann)
+include_directories(${LIB_DIRECTORY}/flann/src/cpp)
 
 add_subdirectory(${TEST_DIRECTORY})
 add_subdirectory(${SRC_DIRECTORY})

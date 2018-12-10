@@ -1,3 +1,9 @@
 [submodule "lib/libigl"]
 	path = lib/libigl
 	url = https://github.com/libigl/libigl
+[submodule "lib/ms-clustering"]
+	path = lib/ms-clustering
+	url = https://github.com/victorvianna/ms-clustering
+[submodule "lib/flann"]
+	path = lib/flann
+	url = https://github.com/victorvianna/flann
