@@ -14,7 +14,7 @@ vector<Signature> prune_points(vector<Signature> &signatures) {
     vector<Signature> pruned;
 
     for(Signature s : signatures){
-        if(s.not_umbilic_point())
+        if(s.is_not_umbilic_point())
             pruned.push_back(s);
     }
 
@@ -61,13 +61,13 @@ private:
 };
 
 template<typename T>
-vector<T> random_sample(vector<T> &v) {
+vector<T> random_sample(vector<T>& v) {
     /// TODO
     vector<T> sampled(v.begin(), v.end());
     return sampled;
 };
 
-void build_pairing(vector<Signature> &signatures, vector<Transformation> &transf) {
+void build_pairing(vector<Signature> &signatures, vector<Transformation>& transf) {
     vector<Signature> samples = random_sample(signatures);
     flann::Matrix<double> datapoints(Signature::flatten(signatures), signatures.size(), Signature::dimension());
     flann::Matrix<double> query(Signature::flatten(samples), samples.size(), Signature::dimension());
@@ -89,7 +89,7 @@ void build_pairing(vector<Signature> &signatures, vector<Transformation> &transf
 }
 
 
-void run_clustering(vector<Transformation> &transf_space, vector<vector<Transformation>> &clusters_transf) {
+void run_clustering(vector<Transformation>& transf_space, vector<vector<Transformation>>& clusters_transf) {
     double kernel_bandwidth = 3;
     double beta_1 = 1, beta_2 = 1, beta_3 = 1;
     vector<double> weights = {beta_1, beta_2, beta_2, beta_2, beta_3, beta_3, beta_3, 0, 0};

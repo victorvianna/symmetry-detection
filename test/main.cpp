@@ -80,7 +80,7 @@ bool key_down_curvatures(igl::opengl::glfw::Viewer& viewer, unsigned char key, i
             // Draw the three directions
             viewer.data().add_edges(vertices + minCurvDir * length, vertices - minCurvDir * length, blue);
             viewer.data().add_edges(vertices + maxCurvDir * length, vertices - maxCurvDir * length, red);
-            viewer.data().add_edges(vertices + normal * length, vertices - normal * length, green);
+            viewer.data().add_edges(vertices, vertices + normal * length, green);
             return true;
         case '6':
             // Remove the segments
@@ -101,16 +101,26 @@ void test_principal_curvatures(){
     igl::principal_curvature(vertices, faces, minCurvDir, maxCurvDir, minCurvVal, maxCurvVal);
 
     // Compute the normal directions
-    /*normal = Eigen::MatrixXd(vertices.rows(), 3);
+    igl::per_vertex_normals(vertices, faces, normal);
+    //normal = Eigen::MatrixXd(vertices.rows(), 3);
     for (int i = 0; i < vertices.rows(); i++) {
         Eigen::Vector3d d1, d2, n;
-        d1 << minCurvDir.row(i);
-        d2 << maxCurvDir.row(i);
+        d1(0) = minCurvDir(i, 0);
+        d1(1) = minCurvDir(i, 1);
+        d1(2) = minCurvDir(i, 2);
+
+        d2(0) = maxCurvDir(i, 0);
+        d2(1) = maxCurvDir(i, 1);
+        d2(2) = maxCurvDir(i, 2);
+
         n = d1.cross(d2);
         n.normalize();
+
+        if(normal.row(i) * n < 0)
+            n = - n;
+
         normal.row(i) << n(0), n(1), n(2);
-    }*/
-    igl::per_vertex_normals(vertices, faces, normal);
+    }
 
     // Mean curvature
     Eigen::VectorXd meanCurv = 0.5 * (minCurvVal + maxCurvVal);

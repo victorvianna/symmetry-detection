@@ -13,24 +13,26 @@ private:
     double kMin, kMax;
     Eigen::MatrixXd minCurv, maxCurv, normal;
     int point_index;
-public:
     Signature(double _kMin, double _kMax, Eigen::MatrixXd _minCurv, Eigen::MatrixXd _maxCurv, Eigen::MatrixXd _normal, int _point_index);
 
+public:
     static void build_signatures(Eigen::MatrixXd &V, Eigen::MatrixXi &F, std::vector<Signature> &signatures);
 
     int get_point_index();
 
     static int dimension();
 
-    void plot_directions(igl::opengl::glfw::Viewer& viewer, Eigen::MatrixXd &V, double length);
+    void plot_directions(igl::opengl::glfw::Viewer& viewer, Eigen::MatrixXd& V, double length,
+                         bool showMin = true, bool showMax = true, bool showNormal = true);
 
-    static void plot_all_directions(igl::opengl::glfw::Viewer& viewer, Eigen::MatrixXd &V, Eigen::MatrixXi &F, std::vector<Signature> &signatures);
+    static void plot_all_directions(igl::opengl::glfw::Viewer& viewer, Eigen::MatrixXd &V, Eigen::MatrixXi &F, std::vector<Signature> &signatures,
+                                    bool showMin = true, bool showMax = true, bool showNormal = true);
 
     std::vector<double> flatten();
 
     static double* flatten(std::vector<Signature>& signatures);
 
-    bool not_umbilic_point();
+    bool is_not_umbilic_point();
 };
 
 
