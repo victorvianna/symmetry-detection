@@ -67,10 +67,10 @@ vector<T> random_sample(vector<T>& v) {
     return sampled;
 };
 
-void build_pairing(vector<Signature> &signatures, vector<Transformation>& transf) {
+void build_pairing(vector<Signature> &signatures, vector<Transformation>& transf, bool rigid) {
     vector<Signature> samples = random_sample(signatures);
-    flann::Matrix<double> datapoints(Signature::flatten(signatures), signatures.size(), Signature::dimension());
-    flann::Matrix<double> query(Signature::flatten(samples), samples.size(), Signature::dimension());
+    flann::Matrix<double> datapoints(Signature::flatten(signatures, rigid), signatures.size(), Signature::dimension());
+    flann::Matrix<double> query(Signature::flatten(samples, rigid), samples.size(), Signature::dimension());
     flann::Index<flann::L2<double>> index(datapoints, flann::KDTreeIndexParams(4));
     index.buildIndex();
     double radius = 0.6;
@@ -108,6 +108,7 @@ void run_clustering(vector<Transformation>& transf_space, vector<vector<Transfor
 
 int main() {
 
+    bool rigid = false;
     Eigen::MatrixXd V;
     Eigen::MatrixXi F;
     igl::read_triangle_mesh("mesh/bunny.off", V, F);
@@ -128,7 +129,7 @@ int main() {
 
     // pairing
     vector<Transformation> transf_space;
-    build_pairing(signatures, transf_space);
+    build_pairing(signatures, transf_space, rigid);
 
     // clustering
     vector<vector<Transformation>> clusters;

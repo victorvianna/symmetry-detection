@@ -28,9 +28,9 @@ public:
     static void plot_all_directions(igl::opengl::glfw::Viewer& viewer, Eigen::MatrixXd &V, Eigen::MatrixXi &F, std::vector<Signature> &signatures,
                                     bool showMin = true, bool showMax = true, bool showNormal = true);
 
-    std::vector<double> flatten();
+    std::vector<double> flatten(bool rigid);
 
-    static double* flatten(std::vector<Signature>& signatures);
+    static double* flatten(std::vector<Signature>& signatures, bool rigid);
 
     bool is_not_umbilic_point();
 };
