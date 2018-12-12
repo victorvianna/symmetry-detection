@@ -23,5 +23,7 @@ include_directories(${LIB_DIRECTORY}/ms-clustering)
 add_subdirectory(${LIB_DIRECTORY}/flann)
 include_directories(${LIB_DIRECTORY}/flann/src/cpp)
 
+include_directories(${SRC_DIRECTORY})
+
 add_subdirectory(${TEST_DIRECTORY})
 add_subdirectory(${SRC_DIRECTORY})

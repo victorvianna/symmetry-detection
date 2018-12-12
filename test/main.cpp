@@ -12,10 +12,10 @@
 Eigen::MatrixXd vertices;
 Eigen::MatrixXi faces;
 
-Eigen::MatrixXd minCurvDir, maxCurvDir;
+Eigen::MatrixXd minCurvDir, maxCurvDir, normal;
 Eigen::VectorXd minCurvVal, maxCurvVal;
 
-const Eigen::RowVector3d red(0.8, 0.2, 0.2), blue(0.2, 0.2, 0.8);
+const Eigen::RowVector3d red(0.8, 0.2, 0.2), green(0.2, 0.8, 0.2), blue(0.2, 0.2, 0.8);
 double length;
 
 void test_mesh_display(){
@@ -71,6 +71,18 @@ bool key_down_curvatures(igl::opengl::glfw::Viewer& viewer, unsigned char key, i
             viewer.data().add_edges(vertices + maxCurvDir * length, vertices - maxCurvDir * length, red);
             return true;
         case '4':
+            clear_lines(viewer);
+            // Draw normals
+            viewer.data().add_edges(vertices + normal * length, vertices - normal * length, green);
+            return true;
+        case '5':
+            clear_lines(viewer);
+            // Draw the three directions
+            viewer.data().add_edges(vertices + minCurvDir * length, vertices - minCurvDir * length, blue);
+            viewer.data().add_edges(vertices + maxCurvDir * length, vertices - maxCurvDir * length, red);
+            viewer.data().add_edges(vertices, vertices + normal * length, green);
+            return true;
+        case '6':
             // Remove the segments
             clear_lines(viewer);
             return true;
@@ -87,6 +99,28 @@ void test_principal_curvatures(){
 
     // Compute curvature directions via quadric fitting
     igl::principal_curvature(vertices, faces, minCurvDir, maxCurvDir, minCurvVal, maxCurvVal);
+
+    // Compute the normal directions
+    igl::per_vertex_normals(vertices, faces, normal);
+    //normal = Eigen::MatrixXd(vertices.rows(), 3);
+    for (int i = 0; i < vertices.rows(); i++) {
+        Eigen::Vector3d d1, d2, n;
+        d1(0) = minCurvDir(i, 0);
+        d1(1) = minCurvDir(i, 1);
+        d1(2) = minCurvDir(i, 2);
+
+        d2(0) = maxCurvDir(i, 0);
+        d2(1) = maxCurvDir(i, 1);
+        d2(2) = maxCurvDir(i, 2);
+
+        n = d1.cross(d2);
+        n.normalize();
+
+        if(normal.row(i) * n < 0)
+            n = - n;
+
+        normal.row(i) << n(0), n(1), n(2);
+    }
 
     // Mean curvature
     Eigen::VectorXd meanCurv = 0.5 * (minCurvVal + maxCurvVal);
@@ -111,7 +145,9 @@ void test_principal_curvatures(){
     std::cout << "Press '1' for minimal curvature directions." << std:: endl
               << "Press '2' for maximal curvature directions." << std:: endl
               << "Press '3' for minimal and maximal curvature directions." << std:: endl
-              << "Press '4' for no curvature direction." << std:: endl;
+              << "Press '4' for normal directions." << std:: endl
+              << "Press '5' for the three directions." << std:: endl
+              << "Press '6' for no curvature direction." << std:: endl;
 
     viewer.launch();
 }
@@ -174,7 +210,7 @@ void test_nearest_neighbors(){
 int main(int argc, char *argv[])
 {
     //test_mesh_display();
-    //test_principal_curvatures();
+    test_principal_curvatures();
     test_clustering();
     test_nearest_neighbors();
     test_weighted_clustering();

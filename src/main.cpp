@@ -1,60 +1,23 @@
 #include <iostream>
-#include <igl/readOFF.h>
+#include <igl/read_triangle_mesh.h>
+#include <igl/opengl/glfw/Viewer.h>
+#include <igl/principal_curvature.h>
 #include "flann/flann.hpp"
 #include "mean_shift.h"
 #include "kernel.h"
 
+#include "signature.h"
+
 using namespace std;
 
-class Signature {
-private:
-    double k1, k2;
-    vector<double> d1, d2, d3;
-    int point_index;
-public:
-    Signature(double _k1, double _k2, vector<double> _d1, vector<double> _d2, vector<double> _d3, int _point_index) :
-            k1(_k1), k2(_k2), d1(_d1), d2(_d2), d3(_d3), point_index(_point_index) {}
-
-    static int dimension() {
-        return 3 * 3 + 2;
-    }
-
-    int get_point_index() {
-        return point_index;
-    }
-
-    static void build_signatures(Eigen::MatrixXd &V, Eigen::MatrixXi &F, vector<Signature> &signatures) {
-        ///TODO
-        for (int i = 0; i < V.rows(); i++)
-            signatures.push_back(Signature(1, 1, {1, 0, 0}, {0, 1, 0}, {0, 0, 1}, i));
-    }
-
-    vector<double> flatten() {
-        vector<double> flattened;
-        flattened.push_back(k1);
-        flattened.push_back(k2);
-        flattened.insert(flattened.end(), d1.begin(), d1.end());
-        flattened.insert(flattened.end(), d2.begin(), d2.end());
-        flattened.insert(flattened.end(), d3.begin(), d3.end());
-        return flattened;
-    }
-
-    static double *flatten(vector<Signature> &signatures) {
-        double *all_flattened = new double[Signature::dimension() * signatures.size()];
-        vector<Signature>::iterator it;
-        double *p;
-        for (it = signatures.begin(), p = all_flattened; it != signatures.end(); it++) {
-            auto flattened = it->flatten();
-            copy(flattened.begin(), flattened.end(), p);
-            p += flattened.size();
-        }
-        return all_flattened;
-    }
-};
-
 vector<Signature> prune_points(vector<Signature> &signatures) {
-    /// TODO
-    vector<Signature> pruned(signatures.begin(), signatures.end());
+    vector<Signature> pruned;
+
+    for(Signature s : signatures){
+        if(s.is_not_umbilic_point())
+            pruned.push_back(s);
+    }
+
     return pruned;
 }
 
@@ -98,16 +61,16 @@ private:
 };
 
 template<typename T>
-vector<T> random_sample(vector<T> &v) {
+vector<T> random_sample(vector<T>& v) {
     /// TODO
     vector<T> sampled(v.begin(), v.end());
     return sampled;
 };
 
-void build_pairing(vector<Signature> &signatures, vector<Transformation> &transf) {
+void build_pairing(vector<Signature> &signatures, vector<Transformation>& transf, bool rigid) {
     vector<Signature> samples = random_sample(signatures);
-    flann::Matrix<double> datapoints(Signature::flatten(signatures), signatures.size(), Signature::dimension());
-    flann::Matrix<double> query(Signature::flatten(samples), samples.size(), Signature::dimension());
+    flann::Matrix<double> datapoints(Signature::flatten(signatures, rigid), signatures.size(), Signature::dimension());
+    flann::Matrix<double> query(Signature::flatten(samples, rigid), samples.size(), Signature::dimension());
     flann::Index<flann::L2<double>> index(datapoints, flann::KDTreeIndexParams(4));
     index.buildIndex();
     double radius = 0.6;
@@ -126,7 +89,7 @@ void build_pairing(vector<Signature> &signatures, vector<Transformation> &transf
 }
 
 
-void run_clustering(vector<Transformation> &transf_space, vector<vector<Transformation>> &clusters_transf) {
+void run_clustering(vector<Transformation>& transf_space, vector<vector<Transformation>>& clusters_transf) {
     double kernel_bandwidth = 3;
     double beta_1 = 1, beta_2 = 1, beta_3 = 1;
     vector<double> weights = {beta_1, beta_2, beta_2, beta_2, beta_3, beta_3, beta_3, 0, 0};
@@ -145,9 +108,14 @@ void run_clustering(vector<Transformation> &transf_space, vector<vector<Transfor
 
 int main() {
 
+    bool rigid = false;
     Eigen::MatrixXd V;
     Eigen::MatrixXi F;
-    igl::readOFF("mesh/tetrahedron.off", V, F);
+    igl::read_triangle_mesh("mesh/bunny.off", V, F);
+
+    // Plot the mesh
+    igl::opengl::glfw::Viewer viewer;
+    viewer.data().set_mesh(V, F);
 
     // signature computation
     vector<Signature> signatures;
@@ -156,19 +124,24 @@ int main() {
     // pruning
     signatures = prune_points(signatures);
 
+    // Plot after pruning
+    Signature::plot_all_directions(viewer, V, F, signatures);
+
     // pairing
     vector<Transformation> transf_space;
-    build_pairing(signatures, transf_space);
+    build_pairing(signatures, transf_space, rigid);
 
     // clustering
     vector<vector<Transformation>> clusters;
     run_clustering(transf_space, clusters);
-
 
     // run verification and build patches
     /// TODO
 
     // display patches or write to file
     /// TODO
+
+    viewer.launch();
+
     return 0;
 }
