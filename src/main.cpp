@@ -114,8 +114,8 @@ int main() {
     igl::read_triangle_mesh("mesh/bunny.off", V, F);
 
     // Plot the mesh
-    igl::opengl::glfw::Viewer viewer;
-    viewer.data().set_mesh(V, F);
+    //igl::opengl::glfw::Viewer viewer;
+    //viewer.data().set_mesh(V, F);
 
     // signature computation
     vector<Signature> signatures;
@@ -125,7 +125,7 @@ int main() {
     signatures = prune_points(signatures);
 
     // Plot after pruning
-    Signature::plot_all_directions(viewer, V, F, signatures);
+    //Signature::plot_all_directions(viewer, V, F, signatures);
 
     // pairing
     vector<Transformation> transf_space;
@@ -141,7 +141,7 @@ int main() {
     // display patches or write to file
     /// TODO
 
-    viewer.launch();
+    //viewer.launch();
 
     return 0;
 }
