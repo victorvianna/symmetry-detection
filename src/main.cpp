@@ -6,7 +6,7 @@
 #include "mean_shift.h"
 #include "kernel.h"
 
-#include "Signature.h"
+#include "signature.h"
 
 using namespace std;
 

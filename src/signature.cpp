@@ -2,7 +2,7 @@
 // Created by gabriel on 11/12/18.
 //
 
-#include "Signature.h"
+#include "signature.h"
 #include <igl/principal_curvature.h>
 #include <igl/avg_edge_length.h>
 #include <iostream>
@@ -59,9 +59,12 @@ void Signature::plot_directions(igl::opengl::glfw::Viewer& viewer, Eigen::Matrix
     Eigen::RowVector3d red(0.8, 0.2, 0.2), green(0.2, 0.8, 0.2), blue(0.2, 0.2, 0.8);
 
     // Draw the three directions
-    viewer.data().add_edges(V.row(point_index) - minCurv * length, V.row(point_index) + minCurv * length, blue);
-    viewer.data().add_edges(V.row(point_index) - maxCurv * length, V.row(point_index) + maxCurv * length, red);
-    viewer.data().add_edges(V.row(point_index), V.row(point_index) + normal * length, green);
+    if(showMin)
+        viewer.data().add_edges(V.row(point_index) - minCurv * length, V.row(point_index) + minCurv * length, blue);
+    if(showMax)
+        viewer.data().add_edges(V.row(point_index) - maxCurv * length, V.row(point_index) + maxCurv * length, red);
+    if(showNormal)
+        viewer.data().add_edges(V.row(point_index), V.row(point_index) + normal * length, green);
 }
 
 void Signature::plot_all_directions(igl::opengl::glfw::Viewer& viewer, Eigen::MatrixXd& V, Eigen::MatrixXi& F, std::vector<Signature>& signatures,
