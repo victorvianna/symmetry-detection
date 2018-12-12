@@ -11,8 +11,13 @@
 using namespace std;
 
 vector<Signature> prune_points(vector<Signature> &signatures) {
-    /// TODO
-    vector<Signature> pruned(signatures.begin(), signatures.end());
+    vector<Signature> pruned;
+
+    for(Signature s : signatures){
+        if(s.not_umbilic_point())
+            pruned.push_back(s);
+    }
+
     return pruned;
 }
 
@@ -114,10 +119,12 @@ int main() {
     // signature computation
     vector<Signature> signatures;
     Signature::build_signatures(V, F, signatures);
-    Signature::plot_all_directions(viewer, V, F, signatures);
 
     // pruning
     signatures = prune_points(signatures);
+
+    // Plot after pruning
+    Signature::plot_all_directions(viewer, V, F, signatures);
 
     // pairing
     vector<Transformation> transf_space;

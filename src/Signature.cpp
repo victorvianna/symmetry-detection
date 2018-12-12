@@ -32,7 +32,7 @@ int Signature::dimension() {
     return 3 * 3 + 2;
 }
 
-void Signature::plot_directions(igl::opengl::glfw::Viewer& viewer, Eigen::MatrixXd &V, double length){
+void Signature::plot_directions(igl::opengl::glfw::Viewer& viewer, Eigen::MatrixXd& V, double length){
     Eigen::RowVector3d red(0.8, 0.2, 0.2), green(0.2, 0.8, 0.2), blue(0.2, 0.2, 0.8);
 
     // Draw the three directions
@@ -41,15 +41,11 @@ void Signature::plot_directions(igl::opengl::glfw::Viewer& viewer, Eigen::Matrix
     viewer.data().add_edges(V.row(point_index) + normal * length, V.row(point_index) - normal * length, green);
 }
 
-void Signature::plot_all_directions(igl::opengl::glfw::Viewer& viewer, Eigen::MatrixXd &V, Eigen::MatrixXi &F, std::vector<Signature> &signatures){
+void Signature::plot_all_directions(igl::opengl::glfw::Viewer& viewer, Eigen::MatrixXd& V, Eigen::MatrixXi& F, std::vector<Signature>& signatures){
     double length = igl::avg_edge_length(V, F);
 
     for(Signature s : signatures)
         s.plot_directions(viewer, V, length);
-
-    Eigen::MatrixXd normal;
-    igl::per_vertex_normals(V, F, normal);
-    viewer.data().add_edges(V + normal * length, V - normal * length, Eigen::RowVector3d(0.2, 0.8, 0.8));
 }
 
 std::vector<double> Signature::flatten() {
@@ -72,4 +68,8 @@ double* Signature::flatten(std::vector<Signature>& signatures) {
         p += flattened.size();
     }
     return all_flattened;
+}
+
+bool Signature::not_umbilic_point() {
+    return fabs(kMin / kMax) < 0.75;
 }

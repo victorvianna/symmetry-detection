@@ -29,6 +29,8 @@ public:
     std::vector<double> flatten();
 
     static double* flatten(std::vector<Signature>& signatures);
+
+    bool not_umbilic_point();
 };
 
 
