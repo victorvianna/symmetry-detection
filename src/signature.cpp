@@ -8,8 +8,9 @@
 #include <iostream>
 
 Signature::Signature(double _kMin, double _kMax, Eigen::MatrixXd _minCurv, Eigen::MatrixXd _maxCurv,
-                     Eigen::MatrixXd _normal, int _point_index) :
-        kMin(_kMin), kMax(_kMax), minCurv(_minCurv), maxCurv(_maxCurv), normal(_normal), point_index(_point_index) {}
+                     Eigen::MatrixXd _normal, int _point_index, Eigen::MatrixXd _pointCoordinates) :
+        kMin(_kMin), kMax(_kMax), minCurv(_minCurv), maxCurv(_maxCurv), normal(_normal), point_index(_point_index),
+        pointCoordinates(_pointCoordinates){}
 
 void Signature::build_signatures(Eigen::MatrixXd &V, Eigen::MatrixXi &F, std::vector<Signature> &signatures) {
     Eigen::MatrixXd minCurvDir, maxCurvDir, normalDir;
@@ -42,13 +43,17 @@ void Signature::build_signatures(Eigen::MatrixXd &V, Eigen::MatrixXi &F, std::ve
             minCurvDir.row(i) = -minCurvDir.row(i);
         }
 
+        Eigen::MatrixXd coords;
+        coords = V.row(i);
+        coords.transposeInPlace();
+
         // Create the signature
-        signatures.push_back(
-                Signature(minCurvVal(i), maxCurvVal(i), minCurvDir.row(i), maxCurvDir.row(i), n.transpose(), i));
+        signatures.push_back(Signature(minCurvVal(i), maxCurvVal(i), minCurvDir.row(i), maxCurvDir.row(i),
+                n.transpose(), i, coords));
     }
 }
 
-int Signature::get_point_index() {
+const int &Signature::get_point_index() const {
     return point_index;
 }
 
@@ -92,7 +97,7 @@ std::vector<double> Signature::flatten(bool rigid) {
 }
 
 double *Signature::flatten(std::vector<Signature> &signatures, bool rigid) {
-    double *all_flattened = new double[Signature::dimension() * signatures.size()];
+    auto *all_flattened = new double[Signature::dimension() * signatures.size()];
     std::vector<Signature>::iterator it;
     double *p;
     for (it = signatures.begin(), p = all_flattened; it != signatures.end(); it++) {
@@ -103,6 +108,30 @@ double *Signature::flatten(std::vector<Signature> &signatures, bool rigid) {
     return all_flattened;
 }
 
-bool Signature::is_not_umbilic_point() {
+bool Signature::is_not_umbilical_point() {
     return fabs(kMin / kMax) < 0.75;
+}
+
+double Signature::getKMin() const {
+    return kMin;
+}
+
+double Signature::getKMax() const {
+    return kMax;
+}
+
+const Eigen::MatrixXd &Signature::getMinCurv() const {
+    return minCurv;
+}
+
+const Eigen::MatrixXd &Signature::getMaxCurv() const {
+    return maxCurv;
+}
+
+const Eigen::MatrixXd &Signature::getNormal() const {
+    return normal;
+}
+
+const Eigen::MatrixXd &Signature::getPointCoordinates() const {
+    return pointCoordinates;
 }

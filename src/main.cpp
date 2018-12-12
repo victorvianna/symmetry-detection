@@ -5,6 +5,7 @@
 #include "flann/flann.hpp"
 #include "mean_shift.h"
 #include "kernel.h"
+#include "transformation.h"
 
 #include "signature.h"
 
@@ -14,51 +15,13 @@ vector<Signature> prune_points(vector<Signature> &signatures) {
     vector<Signature> pruned;
 
     for(Signature s : signatures){
-        if(s.is_not_umbilic_point())
+        if(s.is_not_umbilical_point())
             pruned.push_back(s);
     }
 
     return pruned;
 }
 
-class Transformation {
-public:
-    Transformation(Signature &a, Signature &b) {
-        // TODO
-        origin_index = a.get_point_index();
-        image_index = b.get_point_index();
-        s = 1;
-        R = {0, 0, 0};
-        t = {0, 0, 0};
-    }
-
-    Transformation(vector<double> &point) {
-        if (point.size() != 7 + 2)
-            throw string("Invalid point size");
-        s = point[0];
-        R = vector<double>(point.begin() + 1, point.begin() + 4);
-        t = vector<double>(point.begin() + 4, point.begin() + 7);
-        origin_index = point[7];
-        image_index = point[8];
-    }
-
-    static vector<vector<double>> to_points(vector<Transformation> transf_space) {
-        vector<vector<double>> points;
-        for (Transformation &t : transf_space) {
-            points.push_back(t.to_point());
-        }
-        return points;
-    }
-
-    vector<double> to_point() {
-        return {s, R[0], R[1], R[2], t[0], t[1], t[2], (double) origin_index, (double) image_index};
-    }
-
-private:
-    int origin_index, image_index;
-    double s;
-    vector<double> R, t;
-};
 
 template<typename T>
 vector<T> random_sample(vector<T>& v) {

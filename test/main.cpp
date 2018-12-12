@@ -173,14 +173,14 @@ void test_weighted_clustering(){
 void test_nearest_neighbors(){
     using namespace flann;
 
-    double* dataset_ = new double[8]{
+    auto* dataset_ = new double[8]{
             0, 0,
             1, 1,
             2, 2,
             3, 3
     };
     Matrix<double> dataset(dataset_, 4, 2);
-    double* query_ = new double[4]{
+    auto* query_ = new double[4]{
             0.5, 0.5,
             2.5, 2.5
     };
@@ -207,6 +207,16 @@ void test_nearest_neighbors(){
     delete[] query.ptr();
 }
 
+void test_euler(){
+    Eigen::Matrix3d m;
+    m << -1, 0, 0,
+    0, -1, 0,
+    0, 0, 1;
+    Eigen::Vector3d ea = m.eulerAngles(0, 1, 2);
+    std::cout << "euler angles" << std::endl;
+    std::cout << ea << std::endl;
+}
+
 int main(int argc, char *argv[])
 {
     //test_mesh_display();
@@ -214,5 +224,6 @@ int main(int argc, char *argv[])
     test_clustering();
     test_nearest_neighbors();
     test_weighted_clustering();
+    test_euler();
     return 0;
 }
