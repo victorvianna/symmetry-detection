@@ -2,6 +2,7 @@
 #include <igl/read_triangle_mesh.h>
 #include <igl/opengl/glfw/Viewer.h>
 #include <igl/principal_curvature.h>
+#include <igl/bounding_box.h>
 #include "flann/flann.hpp"
 #include "mean_shift.h"
 #include "kernel.h"
@@ -56,10 +57,14 @@ void build_pairing(vector<Signature> &signatures, vector<Transformation> &transf
     }
 }
 
+void run_clustering(vector<Transformation> &transf_space, vector<vector<Transformation>> &clusters_transf,
+                    double diagonal_length) {
+    // setup coefficients according to paper
+    double beta_1 = 0.01;
+    double beta_2 = 1.0 / (M_PI * M_PI);
+    double beta_3 = 4.0 / (diagonal_length * diagonal_length);
 
-void run_clustering(vector<Transformation>& transf_space, vector<vector<Transformation>>& clusters_transf) {
     double kernel_bandwidth = 3;
-    double beta_1 = 1, beta_2 = 1, beta_3 = 1;
     vector<double> weights = {beta_1, beta_2, beta_2, beta_2, beta_3, beta_3, beta_3, 0, 0};
     MeanShift *msp = new MeanShift(epanechnikov_kernel, weights);
 
@@ -98,10 +103,15 @@ int main() {
     // pairing
     vector<Transformation> transf_space;
     build_pairing(signatures, transf_space, rigid);
+    // calculate diagonal of bounding box
+    Eigen::Vector3d m = V.colwise().minCoeff();
+    Eigen::Vector3d M = V.colwise().maxCoeff();
+    auto bounding_box = (M - m);
+    double diagonal_length = bounding_box.norm();
 
     // clustering
     vector<vector<Transformation>> clusters;
-    run_clustering(transf_space, clusters);
+    run_clustering(transf_space, clusters, diagonal_length);
 
     // run verification and build patches
     /// TODO
