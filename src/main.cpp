@@ -24,16 +24,21 @@ vector<Signature> prune_points(vector<Signature> &signatures) {
 
 
 template<typename T>
-vector<T> random_sample(vector<T>& v) {
-    /// TODO
-    vector<T> sampled(v.begin(), v.end());
+vector<T> random_sample(vector<T> &v, int num_samples) {
+    std::vector<int> indices(v.size());
+    std::iota(indices.begin(), indices.end(), 0);
+    std::random_shuffle(indices.begin(), indices.end());
+    vector<T> sampled;
+    for (int idx : indices)
+        sampled.push_back(v[idx]);
     return sampled;
 };
 
-void build_pairing(vector<Signature> &signatures, vector<Transformation>& transf, bool rigid) {
-    vector<Signature> samples = random_sample(signatures);
     flann::Matrix<double> datapoints(Signature::flatten(signatures, rigid), signatures.size(), Signature::dimension());
     flann::Matrix<double> query(Signature::flatten(samples, rigid), samples.size(), Signature::dimension());
+void build_pairing(vector<Signature> &signatures, vector<Transformation> &transf, bool rigid,
+    const int NUM_SAMPLES = std::min<int>((int) signatures.size(), 100);
+    vector<Signature> samples = random_sample(signatures, NUM_SAMPLES);
     flann::Index<flann::L2<double>> index(datapoints, flann::KDTreeIndexParams(4));
     index.buildIndex();
     double radius = 0.6;
