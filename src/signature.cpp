@@ -13,6 +13,7 @@ Signature::Signature(double _kMin, double _kMax, Eigen::MatrixXd _minCurv, Eigen
         pointCoordinates(_pointCoordinates){}
 
 void Signature::build_signatures(Eigen::MatrixXd &V, Eigen::MatrixXi &F, std::vector<Signature> &signatures) {
+    signatures.clear();
     Eigen::MatrixXd minCurvDir, maxCurvDir, normalDir;
     Eigen::VectorXd minCurvVal, maxCurvVal;
 
