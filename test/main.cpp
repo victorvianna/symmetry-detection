@@ -8,6 +8,7 @@
 #include "mean_shift.h"
 #include "kernel.h"
 #include "flann/flann.hpp"
+#include "transformation.h"
 
 Eigen::MatrixXd vertices;
 Eigen::MatrixXi faces;
@@ -217,6 +218,21 @@ void test_euler(){
     std::cout << ea << std::endl;
 }
 
+void test_transform_apply(){
+    using namespace std;
+    vector<vector<double>> transformations = {
+        {1, 0, 0, M_PI/4, 0, 0, 0, 0, 1}, // rotation of 45 deg around z
+        {2, 0, 0, 0, 0, 0, 0, 0, 1}, // scale of factor 2
+        {1, 0, 0, 0, 1, 1, 1, 0, 1}}; // translation by (1,1,1)
+    for(auto &transf : transformations){
+      Transformation t(transf);
+      Eigen::MatrixXd p(1, 3);
+      p << 1, 0, 0;
+      auto p2 = t.apply(p);
+      cout << p2(0) << ", " << p2(1) << ", " << p2(2) << std::endl;
+    }
+}
+
 int main(int argc, char *argv[])
 {
     //test_mesh_display();
@@ -225,5 +241,6 @@ int main(int argc, char *argv[])
     test_nearest_neighbors();
     test_weighted_clustering();
     test_euler();
+    test_transform_apply();
     return 0;
 }

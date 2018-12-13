@@ -11,7 +11,6 @@
 class Transformation {
 public:
     Transformation(Signature &a, Signature &b);
-
     explicit Transformation(std::vector<double> &point);
 
     static void to_points(std::vector <Transformation> transf_space,
@@ -19,10 +18,17 @@ public:
 
     std::vector<double> to_point();
 
+    /**
+    * @param point Point as a 1x3 matrix
+    * @return Image of the transformation as 1x3 matrix
+    */
+    Eigen::MatrixXd apply(Eigen::MatrixXd &point);
+
 private:
-    int origin_index, image_index;
-    double s;
-    std::vector<double> R, t;
+  int origin_index, image_index;
+  double s;
+  Eigen::Matrix3d R;
+    Eigen::MatrixXd t;
 };
 
 std::ostream& operator << (std::ostream& os, Transformation &t);

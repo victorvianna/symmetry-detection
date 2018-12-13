@@ -14,20 +14,19 @@ Transformation::Transformation(Signature &a, Signature &b) {
     A << a.getMinCurv(), a.getMaxCurv(), a.getNormal();
     B << b.getMinCurv(), b.getMaxCurv(), b.getNormal();
 
-    Eigen::Matrix3d rotation_matrix = B * A.transpose();
-    Eigen::Vector3d euler_angles = rotation_matrix.eulerAngles(0, 1 , 2);
-    R = std::vector<double>(euler_angles.data(), euler_angles.data() + euler_angles.rows() * euler_angles.cols());
-
-    Eigen::MatrixXd translation = b.getPointCoordinates() - s * rotation_matrix * a.getPointCoordinates();
-    t = std::vector<double>(translation.data(), translation.data() + translation.rows() * translation.cols());
+    R = B * A.transpose();
+    t = b.getPointCoordinates() - s * R * a.getPointCoordinates();
 }
 
 Transformation::Transformation(std::vector<double> &point) {
     if (point.size() != 7 + 2)
         throw std::length_error("invalid point size");
     s = point[0];
-    R = std::vector<double>(point.begin() + 1, point.begin() + 4);
-    t = std::vector<double>(point.begin() + 4, point.begin() + 7);
+    R = (Eigen::AngleAxisd(point[1], Eigen::Vector3d::UnitX())
+        * Eigen::AngleAxisd(point[2], Eigen::Vector3d::UnitY())
+        * Eigen::AngleAxisd(point[3], Eigen::Vector3d::UnitZ())).toRotationMatrix();
+    t.resize(3, 1);
+    t << point[4], point[5], point[6];
     origin_index = point[7];
     image_index = point[8];
 }
@@ -40,11 +39,19 @@ void Transformation::to_points(std::vector <Transformation> transf_space,
 }
 
 std::vector<double> Transformation::to_point() {
-    return {s, R[0], R[1], R[2], t[0], t[1], t[2], (double) origin_index, (double) image_index};
+    auto t_vector = std::vector<double>(t.data(), t.data() + t.rows() * t.cols());
+    Eigen::Vector3d ea = R.eulerAngles(0, 1 , 2);
+    auto ea_vector = std::vector<double>(ea.data(), ea.data() + ea.rows() * ea.cols());
+    return {s, ea_vector[0], ea_vector[1], ea_vector[2], t_vector[0], t_vector[1], t_vector[2],
+            (double) origin_index, (double) image_index};
 }
 
 std::ostream& operator << (std::ostream& os, Transformation &t) {
     auto temp = t.to_point();
     os << std::vector<double>(temp.begin(), temp.end() - 2);
     return os;
+}
+
+Eigen::MatrixXd Transformation::apply(Eigen::MatrixXd& point){
+    return (t + s * R * point.transpose()).transpose();
 }
