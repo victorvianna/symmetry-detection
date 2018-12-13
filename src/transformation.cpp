@@ -32,14 +32,19 @@ Transformation::Transformation(std::vector<double> &point) {
     image_index = point[8];
 }
 
-std::vector <std::vector<double>> Transformation::to_points(std::vector <Transformation> transf_space) {
-    std::vector <std::vector<double>> points;
-    for (Transformation &t : transf_space) {
+void Transformation::to_points(std::vector <Transformation> transf_space,
+                                                            std::vector <std::vector<double>> &points) {
+    points.clear();
+    for (Transformation &t : transf_space)
         points.push_back(t.to_point());
-    }
-    return points;
 }
 
 std::vector<double> Transformation::to_point() {
     return {s, R[0], R[1], R[2], t[0], t[1], t[2], (double) origin_index, (double) image_index};
+}
+
+std::ostream& operator << (std::ostream& os, Transformation &t) {
+    auto temp = t.to_point();
+    os << std::vector<double>(temp.begin(), temp.end() - 2);
+    return os;
 }
