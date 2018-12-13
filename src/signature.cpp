@@ -57,8 +57,8 @@ const int &Signature::get_point_index() const {
     return point_index;
 }
 
-int Signature::dimension() {
-    return 3 * 3 + 2;
+int Signature::dimension(bool rigid) {
+    return rigid ? 2 : 1;
 }
 
 void Signature::plot_directions(igl::opengl::glfw::Viewer &viewer, Eigen::MatrixXd &V, double length,
@@ -97,7 +97,7 @@ std::vector<double> Signature::flatten(bool rigid) {
 }
 
 double *Signature::flatten(std::vector<Signature> &signatures, bool rigid) {
-    auto *all_flattened = new double[Signature::dimension() * signatures.size()];
+    auto *all_flattened = new double[Signature::dimension(rigid) * signatures.size()];
     std::vector<Signature>::iterator it;
     double *p;
     for (it = signatures.begin(), p = all_flattened; it != signatures.end(); it++) {

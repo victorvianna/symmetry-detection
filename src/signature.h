@@ -36,7 +36,7 @@ public:
 
     const int &get_point_index() const;
 
-    static int dimension();
+    static int dimension(bool rigid);
 
     void plot_directions(igl::opengl::glfw::Viewer &viewer, Eigen::MatrixXd &V, double length,
                          bool showMin = true, bool showMax = true, bool showNormal = true);

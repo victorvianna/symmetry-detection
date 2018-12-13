@@ -14,8 +14,8 @@ using namespace std;
 vector<Signature> prune_points(vector<Signature> &signatures) {
     vector<Signature> pruned;
 
-    for(Signature s : signatures){
-        if(s.is_not_umbilical_point())
+    for (Signature &s : signatures) {
+        if (s.is_not_umbilical_point())
             pruned.push_back(s);
     }
 
@@ -34,11 +34,11 @@ vector<T> random_sample(vector<T> &v, int num_samples) {
     return sampled;
 };
 
-    flann::Matrix<double> datapoints(Signature::flatten(signatures, rigid), signatures.size(), Signature::dimension());
-    flann::Matrix<double> query(Signature::flatten(samples, rigid), samples.size(), Signature::dimension());
 void build_pairing(vector<Signature> &signatures, vector<Transformation> &transf, bool rigid,
     const int NUM_SAMPLES = std::min<int>((int) signatures.size(), 100);
     vector<Signature> samples = random_sample(signatures, NUM_SAMPLES);
+    flann::Matrix<double> datapoints(Signature::flatten(signatures, rigid), signatures.size(), Signature::dimension(rigid));
+    flann::Matrix<double> query(Signature::flatten(samples, rigid), samples.size(), Signature::dimension(rigid));
     flann::Index<flann::L2<double>> index(datapoints, flann::KDTreeIndexParams(4));
     index.buildIndex();
     double radius = 0.6;
