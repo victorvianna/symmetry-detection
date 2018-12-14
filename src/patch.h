@@ -23,6 +23,8 @@ public:
     bool insert(int newVertex, Eigen::MatrixXd &V, std::vector<std::vector<int>> &oneRing);
 
     int size();
+
+    void setColor(Eigen::VectorXd &onPatch);
 };
 
 

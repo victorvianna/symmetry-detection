@@ -4,6 +4,7 @@
 #include <igl/principal_curvature.h>
 #include <igl/bounding_box.h>
 #include <igl/avg_edge_length.h>
+#include <igl/parula.h>
 #include "flann/flann.hpp"
 #include "mean_shift.h"
 #include "kernel.h"
@@ -45,13 +46,13 @@ void build_pairing_kd_tree(vector<Signature> &signatures, vector<vector<Transfor
                    bool rigid, bool only_reflections, string filename = "final_transf_space.txt") {
     transf.assign(2, vector<Transformation>());
     std::ofstream fs(filename);
-    const int NUM_SAMPLES = std::min<int>((int) signatures.size(), 100);
+    const int NUM_SAMPLES = std::min<int>((int) signatures.size(), signatures.size() / 4);
     vector<Signature> samples = random_sample(signatures, NUM_SAMPLES);
     flann::Matrix<double> datapoints(Signature::flatten(signatures, rigid), signatures.size(), Signature::dimension(rigid));
     flann::Matrix<double> query(Signature::flatten(samples, rigid), samples.size(), Signature::dimension(rigid));
     flann::Index<flann::L2<double>> index(datapoints, flann::KDTreeIndexParams(4));
     index.buildIndex();
-    double radius = 0.1;
+    double radius = 0.01;
     std::vector<std::vector<int>> indices;
     std::vector<std::vector<double>> dists;
     index.radiusSearch(query, indices, dists, radius, flann::SearchParams(128));
@@ -118,10 +119,9 @@ void run_clustering(vector<vector<Transformation>> &transf_space, vector<vector<
 }
 
 int main() {
-
     bool rigid = true;
     bool only_reflections = true;
-    bool plotting = true;
+    bool plotting = false;
 
     Eigen::MatrixXd V;
     Eigen::MatrixXi F;
@@ -141,10 +141,6 @@ int main() {
     if (plotting)
         build_pairing_all(signatures, "pruned_transf_space.txt", rigid, only_reflections);
 
-
-    // Plot after pruning
-    //Signature::plot_all_directions(viewer, V, F, signatures);
-
     // pairing
     vector<vector<Transformation>> transf_space(2); // [0] stores non-reflections, [1] stores reflections
     build_pairing_kd_tree(signatures, transf_space, rigid, only_reflections);
@@ -161,29 +157,50 @@ int main() {
     vector<vector<Transformation>> clusters;
     run_clustering(transf_space, clusters, diagonal_length, only_reflections);
 
+    const string END_CLUSTER = "---------";
+
+    // WRITE
+    ofstream os("clusters.txt");
+    for(auto it = clusters.begin(); it != clusters.end(); it++){
+        for(auto &transf : *it){
+            os << transf.to_point() << std::endl;
+        }
+        os << END_CLUSTER << std::endl;
+
+    }
+    os.close();
+
     cout << "Num of clusters " << clusters.size() << endl;
 
     // run verification and build patches
-    /// TODO
     double length = igl::avg_edge_length(V, F);
-    Verification verify(F, 1.5 * length);
+    Verification verify(F, 0.75 * length);
 
     for(int i = 0; i < clusters.size(); i++){
         vector<PatchPair> patches;
         verify.verifyCluster(V, clusters[i], patches);
         cout << "Cluster " << i << ": " << patches.size() << " pair of patches" << endl;
 
-        for(auto patch : patches)
+        Eigen::VectorXd onPatch(V.rows());
+
+        for(auto &patch : patches) {
             cout << "\t" << patch.size() << " vertices" << endl;
+
+            // Compute pseudocolor
+            Eigen::MatrixXd color;
+            patch.setColor(onPatch);
+
+            igl::parula(onPatch, true, color);
+            igl::opengl::glfw::Viewer viewer;
+            viewer.data().set_mesh(V, F);
+            viewer.data().set_mesh(V, F);
+            viewer.data().set_colors(color);
+            viewer.launch();
+        }
     }
 
     // display patches or write to file
     /// TODO
-
-    // Plot the mesh
-    /*igl::opengl::glfw::Viewer viewer;
-    viewer.data().set_mesh(V, F);
-    viewer.launch();*/
 
     return 0;
 }

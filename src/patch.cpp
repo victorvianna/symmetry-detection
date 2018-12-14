@@ -50,3 +50,13 @@ bool PatchPair::insert(int newVertex, Eigen::MatrixXd &V, std::vector<std::vecto
 int PatchPair::size(){
     return origin.size();
 }
+
+void PatchPair::setColor(Eigen::VectorXd &onPatch){
+    for(int i = 0; i < onPatch.size(); i++)
+        onPatch(i) = 0;
+
+    for(int i = 0; i < origin.size(); i++){
+        onPatch(origin[i]) = 1;
+        onPatch(image[i]) = -1;
+    }
+}
