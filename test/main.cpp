@@ -231,12 +231,6 @@ void test_transform_apply(){
       auto p2 = t.apply(p);
       cout << p2(0) << ", " << p2(1) << ", " << p2(2) << std::endl;
     }
-    vector<double> tranf = {};
-    Transformation t(transf, true);
-    Eigen::MatrixXd p(1, 3);
-    p << 1, 0, 0;
-    auto p2 = t.apply(p);
-    cout << p2(0) << ", " << p2(1) << ", " << p2(2) << std::endl;
 }
 
 int main(int argc, char *argv[])
