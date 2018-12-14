@@ -62,6 +62,6 @@ std::ostream& operator << (std::ostream& os, Transformation &t) {
 Eigen::MatrixXd Transformation::apply(Eigen::MatrixXd& point){
     auto point_coords = point;
     if (has_reflection)
-        point_coords.row(2) *= -1;
+        point_coords.col(2) *= -1;
     return (t + s * R * point_coords.transpose()).transpose();
 }

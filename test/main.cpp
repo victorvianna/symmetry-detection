@@ -225,7 +225,7 @@ void test_transform_apply(){
         {2, 0, 0, 0, 0, 0, 0, 0, 1}, // scale of factor 2
         {1, 0, 0, 0, 1, 1, 1, 0, 1}}; // translation by (1,1,1)
     for(auto &transf : transformations){
-      Transformation t(transf);
+      Transformation t(transf, false);
       Eigen::MatrixXd p(1, 3);
       p << 1, 0, 0;
       auto p2 = t.apply(p);
