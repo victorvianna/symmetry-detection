@@ -111,7 +111,7 @@ int main() {
     Eigen::MatrixXi F;
     igl::read_triangle_mesh("mesh/bunny.off", V, F);
 
-    cout << "Total vertices " << V.size() << endl;
+    cout << "Total vertices " << V.rows() << endl;
 
     // Plot the mesh
     //igl::opengl::glfw::Viewer viewer;
