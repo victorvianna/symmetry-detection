@@ -54,12 +54,14 @@ void build_pairing_kd_tree(vector<Signature> &signatures, vector<Transformation>
         Signature &p_a = samples[i];
         for (int j : neighbors) {
             Signature &p_b = signatures[j];
+	    if (p_a.get_point_index() == p_b.get_point_index()) // avoid identity transformation
+		    continue;
             auto t = Transformation(p_a, p_b);
             fs << t << std::endl;
             transf.push_back(t);
-            t = Transformation(p_b, p_a);
-            fs << t << std::endl;
-            transf.push_back(t);
+            // t = Transformation(p_b, p_a);
+            // fs << t << std::endl;
+            // transf.push_back(t);
         }
     }
     fs.close();
