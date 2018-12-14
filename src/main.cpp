@@ -41,7 +41,7 @@ vector<T> random_sample(vector<T> &v, int num_samples) {
 
 void build_pairing_kd_tree(vector<Signature> &signatures, vector<vector<Transformation>> &transf,
                    bool rigid, bool only_reflections, string filename = "final_transf_space.txt") {
-    transf.clear();
+    transf.assign(2, vector<Transformation>());
     std::ofstream fs(filename);
     const int NUM_SAMPLES = std::min<int>((int) signatures.size(), 100);
     vector<Signature> samples = random_sample(signatures, NUM_SAMPLES);
@@ -150,7 +150,8 @@ int main() {
     // pairing
     vector<vector<Transformation>> transf_space(2); // [0] stores non-reflections, [1] stores reflections
     build_pairing_kd_tree(signatures, transf_space, rigid, only_reflections);
-    cout << "Size of transformation space " << transf_space.size() << endl;
+    cout << "Size of transformation space " << transf_space[0].size() << " (no-reflection) " << 
+	    transf_space[1].size() << " (reflection) " << endl;
 
     // calculate diagonal of bounding box
     Eigen::Vector3d m = V.colwise().minCoeff();
