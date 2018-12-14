@@ -8,7 +8,7 @@ Transformation::Transformation(Signature &a, Signature &b) {
     origin_index = a.get_point_index();
     image_index = b.get_point_index();
     // TODO: CHECK OVERFLOW
-    s = a.getKMin() / b.getKMin() + a.getKMax() / b.getKMax();
+    s = (a.getKMin() / b.getKMin() + a.getKMax() / b.getKMax()) / 2;
 
     Eigen::Matrix3d A, B;
     A << a.getMinCurv(), a.getMaxCurv(), a.getNormal();
