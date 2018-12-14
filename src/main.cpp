@@ -53,8 +53,8 @@ void build_pairing_kd_tree(vector<Signature> &signatures, vector<vector<Transfor
     std::vector<std::vector<int>> indices;
     std::vector<std::vector<double>> dists;
     index.radiusSearch(query, indices, dists, radius, flann::SearchParams(128));
-    int i = (only_reflections) ? 1 : 0;
-    for(int z = 0; z < 2; z++) {
+    int z = (only_reflections) ? 1 : 0;
+    for(; z < 2; z++) {
         for (int i = 0; i < samples.size(); i++) {
             vector<int> &neighbors = indices[i];
             Signature &p_a = samples[i];
