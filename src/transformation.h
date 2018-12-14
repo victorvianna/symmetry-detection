@@ -10,8 +10,8 @@
 
 class Transformation {
 public:
-    Transformation(Signature &a, Signature &b);
-    explicit Transformation(std::vector<double> &point);
+    Transformation(Signature &a, Signature &b, bool rigid, bool reflection);
+    explicit Transformation(std::vector<double> &point, bool reflection);
 
     static void to_points(std::vector <Transformation> transf_space,
                                                        std::vector <std::vector<double>> &points);
@@ -26,6 +26,7 @@ public:
 
 private:
   int origin_index, image_index;
+  bool has_reflection;
   double s;
   Eigen::Matrix3d R;
     Eigen::MatrixXd t;

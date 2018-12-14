@@ -4,21 +4,28 @@
 #include "transformation.h"
 #include "signature.h"
 
-Transformation::Transformation(Signature &a, Signature &b) {
+Transformation::Transformation(Signature &a, Signature &b, bool rigid, bool reflection) {
+    has_reflection = reflection;
     origin_index = a.get_point_index();
     image_index = b.get_point_index();
     // TODO: CHECK OVERFLOW
-    s = (a.getKMin() / b.getKMin() + a.getKMax() / b.getKMax()) / 2;
+    s = (rigid)? 1 : (a.getKMin() / b.getKMin() + a.getKMax() / b.getKMax()) / 2;
 
     Eigen::Matrix3d A, B;
     A << a.getMinCurv(), a.getMaxCurv(), a.getNormal();
+    if(reflection) // apply z-reflection to a's local frame
+        A.row(2) *= -1;
     B << b.getMinCurv(), b.getMaxCurv(), b.getNormal();
 
     R = B * A.transpose();
-    t = b.getPointCoordinates() - s * R * a.getPointCoordinates();
+    auto b_coords = b.getPointCoordinates(), a_coords = a.getPointCoordinates();
+    if(reflection) // apply z-reflection to a coordinates
+        a_coords.row(2) *= -1;
+    t = b_coords - s * R * a_coords;
 }
 
-Transformation::Transformation(std::vector<double> &point) {
+Transformation::Transformation(std::vector<double> &point, bool reflection) {
+    has_reflection = reflection;
     if (point.size() != 7 + 2)
         throw std::length_error("invalid point size");
     s = point[0];
@@ -53,5 +60,8 @@ std::ostream& operator << (std::ostream& os, Transformation &t) {
 }
 
 Eigen::MatrixXd Transformation::apply(Eigen::MatrixXd& point){
-    return (t + s * R * point.transpose()).transpose();
+    auto point_coords = point;
+    if (has_reflection)
+        point_coords.row(2) *= -1;
+    return (t + s * R * point_coords.transpose()).transpose();
 }

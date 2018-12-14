@@ -12,6 +12,10 @@
 
 using namespace std;
 
+namespace cst{
+    const string SEPARATOR = "---------"; // output file separator
+}
+
 vector<Signature> prune_points(vector<Signature> &signatures) {
     vector<Signature> pruned;
 
@@ -35,8 +39,8 @@ vector<T> random_sample(vector<T> &v, int num_samples) {
     return sampled;
 };
 
-void build_pairing_kd_tree(vector<Signature> &signatures, vector<Transformation> &transf, bool rigid,
-                   string filename = "final_transf_space.txt") {
+void build_pairing_kd_tree(vector<Signature> &signatures, vector<vector<Transformation>> &transf,
+                   bool rigid, bool only_reflections, string filename = "final_transf_space.txt") {
     transf.clear();
     std::ofstream fs(filename);
     const int NUM_SAMPLES = std::min<int>((int) signatures.size(), 100);
@@ -49,37 +53,43 @@ void build_pairing_kd_tree(vector<Signature> &signatures, vector<Transformation>
     std::vector<std::vector<int>> indices;
     std::vector<std::vector<double>> dists;
     index.radiusSearch(query, indices, dists, radius, flann::SearchParams(128));
-    for (int i = 0; i < samples.size(); i++) {
-        vector<int> &neighbors = indices[i];
-        Signature &p_a = samples[i];
-        for (int j : neighbors) {
-            Signature &p_b = signatures[j];
-	    if (p_a.get_point_index() == p_b.get_point_index()) // avoid identity transformation
-		    continue;
-            auto t = Transformation(p_a, p_b);
-            fs << t << std::endl;
-            transf.push_back(t);
-            // t = Transformation(p_b, p_a);
-            // fs << t << std::endl;
-            // transf.push_back(t);
+    int i = (only_reflections) ? 1 : 0;
+    for(int z = 0; z < 2; z++) {
+        for (int i = 0; i < samples.size(); i++) {
+            vector<int> &neighbors = indices[i];
+            Signature &p_a = samples[i];
+            for (int j : neighbors) {
+                Signature &p_b = signatures[j];
+                if (p_a.get_point_index() == p_b.get_point_index()) // avoid identity transformation
+                    continue;
+                auto t = Transformation(p_a, p_b, rigid, (bool) z);
+                transf[z].push_back(t);
+                fs << t << std::endl;
+            }
         }
+        fs << cst::SEPARATOR << std::endl;
+
     }
     fs.close();
 }
 
-void build_pairing_all(vector<Signature> &signatures,  string filename) {
+void build_pairing_all(vector<Signature> &signatures,  string filename, bool rigid, bool only_reflections) {
     std::ofstream fs(filename);
-    for (auto p = signatures.begin(); p != signatures.end(); p++) {
-        for (auto q = p + 1; q != signatures.end(); q++){
-            fs << Transformation(*p, *q).to_point() << std::endl;
-            fs << Transformation(*q, *p).to_point() << std::endl;
+    int i = only_reflections ? 1 : 0;
+    for(; i < 2; i++) {
+      for (auto p = signatures.begin(); p != signatures.end(); p++) {
+        for (auto q = p + 1; q != signatures.end(); q++) {
+          fs << Transformation(*p, *q, rigid, (bool) i).to_point() << std::endl;
+          fs << Transformation(*q, *p, rigid, (bool) i).to_point() << std::endl;
         }
+      }
+      fs << cst::SEPARATOR << std::endl;
     }
     fs.close();
 }
 
-void run_clustering(vector<Transformation> &transf_space, vector<vector<Transformation>> &clusters_transf,
-                    double diagonal_length) {
+void run_clustering(vector<vector<Transformation>> &transf_space, vector<vector<Transformation>> &clusters_transf,
+                    double diagonal_length, bool only_reflections) {
     clusters_transf.clear();
     // setup coefficients according to paper
     double beta_1 = 0.01;
@@ -90,14 +100,17 @@ void run_clustering(vector<Transformation> &transf_space, vector<vector<Transfor
     vector<double> weights = {beta_1, beta_2, beta_2, beta_2, beta_3, beta_3, beta_3, 0, 0};
     MeanShift *msp = new MeanShift(epanechnikov_kernel, weights);
 
-    vector<vector<double> > points;
-    Transformation::to_points(transf_space, points);
-    vector<Cluster> clusters = msp->cluster(points, kernel_bandwidth);
-    for (Cluster &cluster : clusters) {
-        vector<Transformation> cluster_transf;
-        for (vector<double> &point : cluster.original_points)
-            cluster_transf.push_back(Transformation(point));
-        clusters_transf.push_back(cluster_transf);
+    int i = only_reflections ? 1 : 0;
+    for(; i < 2; i++) {
+        vector<vector<double> > points;
+        Transformation::to_points(transf_space[i], points);
+        vector<Cluster> clusters = msp->cluster(points, kernel_bandwidth);
+        for (Cluster &cluster : clusters) {
+            vector<Transformation> cluster_transf;
+            for (vector<double> &point : cluster.original_points)
+                cluster_transf.push_back(Transformation(point, (bool) i));
+            clusters_transf.push_back(cluster_transf);
+        }
     }
 
 }
@@ -105,6 +118,7 @@ void run_clustering(vector<Transformation> &transf_space, vector<vector<Transfor
 int main() {
 
     bool rigid = true;
+    bool only_reflections = true;
     bool plotting = true;
 
     Eigen::MatrixXd V;
@@ -121,21 +135,21 @@ int main() {
     vector<Signature> signatures;
     Signature::build_signatures(V, F, signatures);
     if (plotting)
-        build_pairing_all(signatures, "complete_transf_space.txt");
+        build_pairing_all(signatures, "complete_transf_space.txt", rigid, only_reflections);
 
     // pruning
     signatures = prune_points(signatures);
     cout << "Remaining vertices after pruning " << signatures.size() << endl;
     if (plotting)
-        build_pairing_all(signatures, "pruned_transf_space.txt");
+        build_pairing_all(signatures, "pruned_transf_space.txt", rigid, only_reflections);
 
 
     // Plot after pruning
     //Signature::plot_all_directions(viewer, V, F, signatures);
 
     // pairing
-    vector<Transformation> transf_space;
-    build_pairing_kd_tree(signatures, transf_space, rigid);
+    vector<vector<Transformation>> transf_space(2); // [0] stores non-reflections, [1] stores reflections
+    build_pairing_kd_tree(signatures, transf_space, rigid, only_reflections);
     cout << "Size of transformation space " << transf_space.size() << endl;
 
     // calculate diagonal of bounding box
@@ -146,7 +160,7 @@ int main() {
 
     // clustering
     vector<vector<Transformation>> clusters;
-    run_clustering(transf_space, clusters, diagonal_length);
+    run_clustering(transf_space, clusters, diagonal_length, only_reflections);
 
     cout << "Num of clusters " << clusters.size() << endl;
 
