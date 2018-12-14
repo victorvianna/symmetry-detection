@@ -53,6 +53,18 @@ std::vector<double> Transformation::to_point() {
             (double) origin_index, (double) image_index};
 }
 
+std::pair<int, int> Transformation::getVertices() {
+    return {origin_index, image_index};
+}
+
+int Transformation::getOrigin() {
+    return origin_index;
+}
+
+int Transformation::getImage() {
+    return image_index;
+}
+
 std::ostream& operator << (std::ostream& os, Transformation &t) {
     auto temp = t.to_point();
     os << std::vector<double>(temp.begin(), temp.end() - 2);

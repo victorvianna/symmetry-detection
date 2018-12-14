@@ -24,6 +24,12 @@ public:
     */
     Eigen::MatrixXd apply(Eigen::MatrixXd &point);
 
+    std::pair<int, int> getVertices();
+
+    int getOrigin();
+
+    int getImage();
+
 private:
   int origin_index, image_index;
   bool has_reflection;

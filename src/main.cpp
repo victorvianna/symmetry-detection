@@ -3,12 +3,14 @@
 #include <igl/opengl/glfw/Viewer.h>
 #include <igl/principal_curvature.h>
 #include <igl/bounding_box.h>
+#include <igl/avg_edge_length.h>
 #include "flann/flann.hpp"
 #include "mean_shift.h"
 #include "kernel.h"
 #include "transformation.h"
 #include "io.h"
 #include "signature.h"
+#include "verification.h"
 
 using namespace std;
 
@@ -49,7 +51,7 @@ void build_pairing_kd_tree(vector<Signature> &signatures, vector<vector<Transfor
     flann::Matrix<double> query(Signature::flatten(samples, rigid), samples.size(), Signature::dimension(rigid));
     flann::Index<flann::L2<double>> index(datapoints, flann::KDTreeIndexParams(4));
     index.buildIndex();
-    double radius = 0.6;
+    double radius = 0.1;
     std::vector<std::vector<int>> indices;
     std::vector<std::vector<double>> dists;
     index.radiusSearch(query, indices, dists, radius, flann::SearchParams(128));
@@ -96,7 +98,7 @@ void run_clustering(vector<vector<Transformation>> &transf_space, vector<vector<
     double beta_2 = 1.0 / (M_PI * M_PI);
     double beta_3 = 4.0 / (diagonal_length * diagonal_length);
 
-    double kernel_bandwidth = 3;
+    double kernel_bandwidth = 1.0;
     vector<double> weights = {beta_1, beta_2, beta_2, beta_2, beta_3, beta_3, beta_3, 0, 0};
     MeanShift *msp = new MeanShift(epanechnikov_kernel, weights);
 
@@ -126,10 +128,6 @@ int main() {
     igl::read_triangle_mesh("mesh/bunny.off", V, F);
 
     cout << "Total vertices " << V.rows() << endl;
-
-    // Plot the mesh
-    //igl::opengl::glfw::Viewer viewer;
-    //viewer.data().set_mesh(V, F);
 
     // signature computation
     vector<Signature> signatures;
@@ -167,11 +165,25 @@ int main() {
 
     // run verification and build patches
     /// TODO
+    double length = igl::avg_edge_length(V, F);
+    Verification verify(F, 1.5 * length);
+
+    for(int i = 0; i < clusters.size(); i++){
+        vector<PatchPair> patches;
+        verify.verifyCluster(V, clusters[i], patches);
+        cout << "Cluster " << i << ": " << patches.size() << " pair of patches" << endl;
+
+        for(auto patch : patches)
+            cout << "\t" << patch.size() << " vertices" << endl;
+    }
 
     // display patches or write to file
     /// TODO
 
-    //viewer.launch();
+    // Plot the mesh
+    /*igl::opengl::glfw::Viewer viewer;
+    viewer.data().set_mesh(V, F);
+    viewer.launch();*/
 
     return 0;
 }
